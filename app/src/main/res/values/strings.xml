@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Proto</string>
+
+    <string name="talk_button">Talk..</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
+    <string name="bing_api_key">8d534e8db7364aad9d7bdf9c3af2518f</string>
+    <string name="welcome_proto_tts">Proto here..How Can I help You..</string>
+
+</resources>
