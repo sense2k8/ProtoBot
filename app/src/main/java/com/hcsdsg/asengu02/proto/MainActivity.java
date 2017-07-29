@@ -3,6 +3,8 @@ package com.hcsdsg.asengu02.proto;
 
 
 import android.annotation.SuppressLint;
+import android.graphics.Color;
+import android.media.MediaPlayer;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -89,13 +91,13 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public boolean onTouch(View view, MotionEvent motionEvent) {
             if (AUTO_HIDE) {
-                delayedHide(AUTO_HIDE_DELAY_MILLIS);
+                //delayedHide(AUTO_HIDE_DELAY_MILLIS);
             }
             return false;
         }
     };
 
-    String welcomeText = "<speak version=\"1.0\" xmlns=\"http://www.w3.org/2001/10/synthesis\" xmlns:mstts=\"http://www.w3.org/2001/mstts\" xml:lang=\"en-US\"><voice xml:lang=\"en-US\" name=\"Microsoft Server Speech Text to Speech Voice (en-US, ZiraRUS)\">Proto Here <Break time=\"500ms\"/>. How can I help you today.</voice></speak>";
+    String welcomeText = "<speak version=\"1.0\" xmlns=\"http://www.w3.org/2001/10/synthesis\" xmlns:mstts=\"http://www.w3.org/2001/mstts\" xml:lang=\"en-US\"><voice xml:lang=\"en-IN\" name=\"Microsoft Server Speech Text to Speech Voice (en-IN, PriyaRUS)\">Proto Here <Break time=\"500ms\"/>. How can I help you today.</voice></speak>";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -113,7 +115,7 @@ public class MainActivity extends AppCompatActivity {
         mContentView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                toggle();
+                //toggle();
             }
         });
 
@@ -121,6 +123,7 @@ public class MainActivity extends AppCompatActivity {
         // operations to prevent the jarring behavior of controls going away
         // while interacting with the UI.
         findViewById(R.id.talk_button).setOnTouchListener(mDelayHideTouchListener);
+        ((Button) findViewById(R.id.talk_button)).setTextColor(Color.GREEN);
 
         final MainActivity This = this;
 
@@ -131,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
 
         m_syn.SetServiceStrategy(Synthesizer.ServiceStrategy.AlwaysService);
 
-        Voice v = new Voice("en-US", "Microsoft Server Speech Text to Speech Voice (en-US, ZiraRUS)", Voice.Gender.Female, true);
+        Voice v = new Voice("en-IN", "Microsoft Server Speech Text to Speech Voice (en-IN, PriyaRUS)", Voice.Gender.Female, true);
 
         m_syn.SetVoice(v, null);
 
@@ -151,7 +154,26 @@ public class MainActivity extends AppCompatActivity {
 
     private void TalkButton_Click(View arg0) {
 
-        m_syn.SpeakSSMLToAudio(welcomeText);
+        //String listeningText = "<speak version=\"1.0\" xmlns=\"http://www.w3.org/2001/10/synthesis\" xmlns:mstts=\"http://www.w3.org/2001/mstts\" xml:lang=\"en-US\"><voice xml:lang=\"en-IN\" name=\"Microsoft Server Speech Text to Speech Voice (en-IN, PriyaRUS)\">Listening.</voice></speak>";
+        //m_syn.SpeakSSMLToAudio(listeningText);
+        MediaPlayer mp = MediaPlayer.create(this,R.raw.beep);
+        mp.start();
+        ((Button) findViewById(R.id.talk_button)).setTextColor(Color.RED);
+        ((Button) findViewById(R.id.talk_button)).setText(R.string.listen_button);
+
+        Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+
+            @Override
+            public void run() {
+                show();
+                ((Button) findViewById(R.id.talk_button)).setTextColor(Color.GREEN);
+                ((Button) findViewById(R.id.talk_button)).setText(R.string.talk_button);
+                MediaPlayer mp = MediaPlayer.create(MainActivity.this,R.raw.done);
+                mp.start();
+            }
+
+        }, 10000); // 5000ms delay
 
     }
 
@@ -163,7 +185,7 @@ public class MainActivity extends AppCompatActivity {
         // Trigger the initial hide() shortly after the activity has been
         // created, to briefly hint to the user that UI controls
         // are available.
-        delayedHide(100);
+        //delayedHide(10000);
     }
 
     private void toggle() {
