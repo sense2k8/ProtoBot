@@ -12,7 +12,14 @@ import android.os.Handler;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
+import com.microsoft.cognitiveservices.speechrecognition.ISpeechRecognitionServerEvents;
+import com.microsoft.cognitiveservices.speechrecognition.MicrophoneRecognitionClient;
+import com.microsoft.cognitiveservices.speechrecognition.RecognitionResult;
+import com.microsoft.cognitiveservices.speechrecognition.RecognitionStatus;
+import com.microsoft.cognitiveservices.speechrecognition.SpeechRecognitionMode;
+import com.microsoft.cognitiveservices.speechrecognition.SpeechRecognitionServiceFactory;
 import com.microsoft.speech.tts.Synthesizer;
 import com.microsoft.speech.tts.Voice;
 
@@ -21,7 +28,7 @@ import com.microsoft.speech.tts.Voice;
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
  */
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements ISpeechRecognitionServerEvents {
     /**
      * Whether or not the system UI should be auto-hidden after
      * {@link #AUTO_HIDE_DELAY_MILLIS} milliseconds.
@@ -29,6 +36,32 @@ public class MainActivity extends AppCompatActivity {
     private static final boolean AUTO_HIDE = true;
 
     private Synthesizer m_syn;
+    MicrophoneRecognitionClient micClient = null;
+
+    public String getPrimaryKey() {
+        return this.getString(R.string.primaryKey);
+    }
+
+    /**
+     * Gets the LUIS application identifier.
+     * @return The LUIS application identifier.
+     */
+    private String getLuisAppId() {
+        return this.getString(R.string.luisAppID);
+    }
+
+    /**
+     * Gets the LUIS subscription identifier.
+     * @return The LUIS subscription identifier.
+     */
+    private String getLuisSubscriptionID() {
+        return this.getString(R.string.luisSubscriptionID);
+    }
+
+    private String getAuthenticationUri() {
+        return this.getString(R.string.authenticationUri);
+    }
+
 
     /**
      * If {@link #AUTO_HIDE} is set, the number of milliseconds to wait after
@@ -154,6 +187,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void TalkButton_Click(View arg0) {
 
+        this._talkButton.setEnabled(false);
         //String listeningText = "<speak version=\"1.0\" xmlns=\"http://www.w3.org/2001/10/synthesis\" xmlns:mstts=\"http://www.w3.org/2001/mstts\" xml:lang=\"en-US\"><voice xml:lang=\"en-IN\" name=\"Microsoft Server Speech Text to Speech Voice (en-IN, PriyaRUS)\">Listening.</voice></speak>";
         //m_syn.SpeakSSMLToAudio(listeningText);
         MediaPlayer mp = MediaPlayer.create(this,R.raw.beep);
@@ -161,19 +195,28 @@ public class MainActivity extends AppCompatActivity {
         ((Button) findViewById(R.id.talk_button)).setTextColor(Color.RED);
         ((Button) findViewById(R.id.talk_button)).setText(R.string.listen_button);
 
-        Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
 
-            @Override
-            public void run() {
-                show();
-                ((Button) findViewById(R.id.talk_button)).setTextColor(Color.GREEN);
-                ((Button) findViewById(R.id.talk_button)).setText(R.string.talk_button);
-                MediaPlayer mp = MediaPlayer.create(MainActivity.this,R.raw.done);
-                mp.start();
-            }
+        ((TextView)mContentView).setText("Listening.....");
+        ((TextView)mContentView).append("\nSpeak loud and clear.....");
 
-        }, 10000); // 5000ms delay
+        /*
+        this.micClient = SpeechRecognitionServiceFactory.createMicrophoneClient(
+                this,
+                SpeechRecognitionMode.LongDictation,
+                "en-us",
+                this,
+                this.getPrimaryKey());
+        */
+        this.micClient = SpeechRecognitionServiceFactory.createMicrophoneClientWithIntent(
+                this,
+                "en-us",
+                this,
+                this.getPrimaryKey(),
+                this.getLuisAppId(),
+                this.getLuisSubscriptionID());
+
+        this.micClient.setAuthenticationUri(this.getAuthenticationUri());
+        this.micClient.startMicAndRecognition();
 
     }
 
@@ -229,5 +272,53 @@ public class MainActivity extends AppCompatActivity {
     private void delayedHide(int delayMillis) {
         mHideHandler.removeCallbacks(mHideRunnable);
         mHideHandler.postDelayed(mHideRunnable, delayMillis);
+    }
+
+    @Override
+    public void onPartialResponseReceived(String s) {
+
+        ((TextView)mContentView).setText("\nPartial Response  ");
+        ((TextView)mContentView).append(s);
+
+    }
+
+    @Override
+    public void onFinalResponseReceived(RecognitionResult response) {
+        boolean isFinalDicationMessage =
+                (response.RecognitionStatus == RecognitionStatus.EndOfDictation ||
+                        response.RecognitionStatus == RecognitionStatus.DictationEndSilenceTimeout);
+
+        if (isFinalDicationMessage) {
+            this._talkButton.setEnabled(true);
+            ((TextView)mContentView).setText("\nFinal Response  ");
+            //((TextView)mContentView).append(response.Results[0].DisplayText);
+
+        }
+
+
+    }
+
+    @Override
+    public void onIntentReceived(String payload) {
+        ((TextView)mContentView).setText("\nIntent Recognized....  ");
+        ((TextView)mContentView).setText(payload);
+    }
+
+    @Override
+    public void onError(int i, String s) {
+        ((TextView)mContentView).append(s);
+    }
+
+    @Override
+    public void onAudioEvent(boolean recording) {
+
+        if (recording) {
+            ((TextView)mContentView).setText("\nRecording....");
+        }
+        if (!recording) {
+            this.micClient.endMicAndRecognition();
+            this._talkButton.setEnabled(true);
+        }
+
     }
 }
