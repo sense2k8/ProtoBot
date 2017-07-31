@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/Proto.iml" filepath="$PROJECT_DIR$/Proto.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/botframewokchatinterface/botframewokchatinterface.iml" filepath="$PROJECT_DIR$/botframewokchatinterface/botframewokchatinterface.iml" />
       <module fileurl="file://$PROJECT_DIR$/speechsdk/speechsdk.iml" filepath="$PROJECT_DIR$/speechsdk/speechsdk.iml" />
     </modules>
   </component>

@@ -31,4 +31,5 @@ dependencies {
     compile 'com.microsoft.projectoxford:speechrecognition:1.2.2'
 
     compile project(path: ':speechsdk')
+    compile project(path: ':botframewokchatinterface')
 }

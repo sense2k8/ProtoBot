@@ -14,11 +14,11 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.hcsdsg.asengu02.botframeworkDirectLineChatInterface.ChatView;
 import com.microsoft.cognitiveservices.speechrecognition.ISpeechRecognitionServerEvents;
 import com.microsoft.cognitiveservices.speechrecognition.MicrophoneRecognitionClient;
 import com.microsoft.cognitiveservices.speechrecognition.RecognitionResult;
 import com.microsoft.cognitiveservices.speechrecognition.RecognitionStatus;
-import com.microsoft.cognitiveservices.speechrecognition.SpeechRecognitionMode;
 import com.microsoft.cognitiveservices.speechrecognition.SpeechRecognitionServiceFactory;
 import com.microsoft.speech.tts.Synthesizer;
 import com.microsoft.speech.tts.Voice;
@@ -34,12 +34,23 @@ public class MainActivity extends AppCompatActivity implements ISpeechRecognitio
      * {@link #AUTO_HIDE_DELAY_MILLIS} milliseconds.
      */
     private static final boolean AUTO_HIDE = true;
+    private ChatView mChatView;
+
+    //keep the last Response MsgId, to check if the last response is already printed or not
 
     private Synthesizer m_syn;
     MicrophoneRecognitionClient micClient = null;
 
     public String getPrimaryKey() {
         return this.getString(R.string.primaryKey);
+    }
+
+    public String getDirectLineKey(){
+        return this.getString(R.string.botDirectLineSecret);
+    }
+
+    public String getBotName() {
+        return this.getString(R.string.botName);
     }
 
     /**
@@ -60,6 +71,11 @@ public class MainActivity extends AppCompatActivity implements ISpeechRecognitio
 
     private String getAuthenticationUri() {
         return this.getString(R.string.authenticationUri);
+    }
+
+    public void setContentViewText(String msg){
+        TextView view = (TextView)(findViewById(R.id.fullscreen_content));
+        view.setText(msg);
     }
 
 
@@ -160,6 +176,10 @@ public class MainActivity extends AppCompatActivity implements ISpeechRecognitio
 
         final MainActivity This = this;
 
+
+
+
+
         if (m_syn == null) {
             // Create Text To Speech Synthesizer.
             m_syn = new Synthesizer(getString(R.string.bing_api_key));
@@ -181,9 +201,23 @@ public class MainActivity extends AppCompatActivity implements ISpeechRecognitio
 
         m_syn.SpeakSSMLToAudio(welcomeText);
 
+
+        final String botName= this.getBotName();
+        final String directlinePrimaryKey=this.getDirectLineKey();
+        //View chatView = new ChatView(mContentView,"Ping",this,botName,directlinePrimaryKey);
+        mChatView = new ChatView(mContentView,this,botName,directlinePrimaryKey);
+
+        int secs = 2; // Delay in seconds
+
+        Utils.delay(secs, new Utils.DelayCallback() {
+            @Override
+            public void afterDelay() {
+                mChatView.sendSingleMsgToBot("Ping");
+
+            }
+        });
+
     }
-
-
 
     private void TalkButton_Click(View arg0) {
 
@@ -279,6 +313,7 @@ public class MainActivity extends AppCompatActivity implements ISpeechRecognitio
 
         ((TextView)mContentView).setText("\nPartial Response  ");
         ((TextView)mContentView).append(s);
+        mChatView.sendSingleMsgToBot(s);
 
     }
 
@@ -300,8 +335,8 @@ public class MainActivity extends AppCompatActivity implements ISpeechRecognitio
 
     @Override
     public void onIntentReceived(String payload) {
-        ((TextView)mContentView).setText("\nIntent Recognized....  ");
-        ((TextView)mContentView).setText(payload);
+        //((TextView)mContentView).setText("\nIntent Recognized....  ");
+        //((TextView)mContentView).setText(payload);
     }
 
     @Override
